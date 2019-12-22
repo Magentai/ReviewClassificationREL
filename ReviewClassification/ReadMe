@@ -1,0 +1,2 @@
+parser - парсер сайта tripadvisor, написанный на языке Java
+classificator - модель классифицкатора, созданная с помощью TensorFlow

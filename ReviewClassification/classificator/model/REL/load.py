@@ -4,83 +4,51 @@ Created on Tue Nov 19 20:49:38 2019
 
 @author: Ruslan
 """
-import json
 import numpy as np
 from keras.preprocessing.text import Tokenizer
-from keras.preprocessing import sequence
 from keras.utils import to_categorical
+import pickle
+import os
 
-def load_data(name,balanced,cpf):
-    (train,labels,mini,minicut)=load_from_json(name,balanced,cpf)
+def load_data2(p1,zero,n1,cpf):
+    (train,labels,mini,minicut)=load_from_json2(p1,zero,n1,cpf)
     labels=np.array(labels)
+    print(train[0])
     sequences = tokenize(train)
-    if(balanced):
-        (train_x,train_y,test_x,test_y)=balance(sequences,labels,minicut)
-    else:
-        train_x=sequences[:3000]
-        test_x=sequences[3000:]
-        train_y=labels[:3000]
-        test_y=labels[3000:]
-    count(train_y, test_y)
-    (train_y, test_y) = categoric(train_y, test_y)
-    return (train_x,train_y,test_x,test_y)
-
-def load_raw(name, balanced, cpf):
-    (train,labels,mini,minicut)=load_from_json(name,balanced,cpf)
-    labels=np.array(labels)
-    sequences = tokenize(train)
-    if(balanced):
-        (x_train,y_train,x_test,y_test)=balance(sequences,labels,minicut)
-    else:
-        x_train=sequences[:3000]
-        x_test=sequences[3000:]
-        y_train=labels[:3000]
-        y_test=labels[3000:]
+    (x_train,y_train,x_test,y_test)=balance(sequences,labels,minicut,mini)
     count(y_train, y_test)
     (y_train, y_test)=categoric(y_train, y_test)
     return (x_train,y_train,x_test,y_test)
 
-def load_from_json(name,balanced,cpf):
-    with open(name, "r", encoding="utf8") as read_file:
-        data = json.load(read_file)
+def load_from_json2(p1,zero,m1,cpf):
     train=list()
     labels=list()
-    a,b,c,max=0,0,0,0
-    for d in data:
-        if(d['score']==0):
-            a=a+1
-        elif(d['score']==1):
-            b=b+1
-        elif(d['score']==2):
-            c=c+1
-        if(len(d['review'])>max):
-            max=len(d['review'])
-    print('negative:',a,'neutral:',b,'positive:',c)
-    print('max char len:',max)
+    a,b,c=0,0,0
+    listOfFile = os.listdir(m1)
+    for file in listOfFile:
+        with open(m1+'//'+file, 'r', encoding='utf-8') as f:
+            train.append(f.readline())
+            f.close()
+        labels.append(0)
+        a=a+1
+    listOfFile = os.listdir(zero) 
+    for file in listOfFile:
+        with open(zero+'//'+file, 'r', encoding='utf-8') as f:
+            train.append(f.readline())
+            f.close()
+        labels.append(1)
+        b=b+1
+    listOfFile = os.listdir(p1) 
+    for file in listOfFile:
+        with open(p1+'//'+file, 'r', encoding='utf-8') as f:
+            train.append(f.readline())
+            f.close()
+        labels.append(2)
+        c=c+1
     mini=min(a, b, c)
-    if(balanced):
-        a,b,c=0,0,0
-        minicut=int(round(mini*(1-cpf)))
-        for d in data:
-            if(d['score']==0 and a<mini):
-                a=a+1
-                labels.append(d['score'])
-                train.append(d['review'])
-            if(d['score']==1 and b<mini):
-                b=b+1
-                labels.append(d['score'])
-                train.append(d['review'])
-            elif(d['score']==2 and c<mini):
-                c=c+1
-                labels.append(d['score'])
-                train.append(d['review'])
-        print('balanced negative:',a,'neutral:',b,'positive:',c)
-    else:
-        for d in data:
-            labels.append(d['score'])
-            train.append(d['review'])
-    return (train,labels,mini,minicut)
-
+    minicut=int(round(mini*(1-cpf)))
+    return(train,labels,mini,minicut)
+    
 def tokenize(train):# prepare data
     train=np.array(train)
     tokenizer = Tokenizer(num_words=None, 
@@ -91,6 +59,8 @@ def tokenize(train):# prepare data
                           oov_token=None, 
                           document_count=0)
     tokenizer.fit_on_texts(train) 
+    with open('tokenizer.pickle', 'wb') as handle:
+        pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
     sequences = np.array(tokenizer.texts_to_sequences(train))
     print(train.shape)
     print(train[0])
@@ -104,7 +74,7 @@ def categoric(y_train, y_test):
     print('test shape:', y_test.shape)
     return (y_train, y_test)
 
-def balance(sequences, labels, minicut):
+def balance(sequences, labels, minicut, mini):
     train_x=list()
     test_x=list()
     train_y=list()
@@ -123,15 +93,15 @@ def balance(sequences, labels, minicut):
             train_x.append(sequences[i])
             train_y.append(l)
             c=c+1
-        elif(l==0):
+        elif(l==0 and a<mini):
             test_x.append(sequences[i])
             test_y.append(l)
             a=a+1
-        elif(l==1):
+        elif(l==1 and b<mini):
             test_x.append(sequences[i])
             test_y.append(l)
             b=b+1
-        elif(l==2):
+        elif(l==2 and c<mini):
             test_x.append(sequences[i])
             test_y.append(l)
             c=c+1
@@ -161,5 +131,3 @@ def count(y_train, y_test):
         else:
             c=c+1
     print('test: negative:',a,'neutral:',b,'positive:',c)
-
-#load_raw("MyJson2.txt",True,0.2)

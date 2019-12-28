@@ -1,0 +1,7 @@
+загрузить токенизатор: 
+import pickle
+with open('tokenizer.pickle', 'rb') as handle:
+    tokenizer = pickle.load(handle)
+	
+загрузить нейросеть:
+model = load_model("res//weights.h5")

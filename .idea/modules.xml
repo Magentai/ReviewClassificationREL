@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/ReviewClassification.iml" filepath="$PROJECT_DIR$/.idea/ReviewClassification.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/ReviewClassificationREL.iml" filepath="$PROJECT_DIR$/.idea/ReviewClassificationREL.iml" />
+>>>>>>> 098e9812b467bc30e0ca42cf7b3bfa272233334a
     </modules>
   </component>
 </project>
